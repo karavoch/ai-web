@@ -4,9 +4,12 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mascot, type MascotState } from "../components/Mascot";
+import { FloatingMascot } from "../components/FloatingMascot";
 import { BackgroundGlow } from "../components/BackgroundGlow";
+import { AuroraBorealis } from "../components/AuroraBorealis";
 
 type InterviewItem = { question: string; answer: string };
+type Mood = "curious" | "serious" | "playful" | "skeptical" | "impressed";
 
 const TOTAL_QUESTIONS = 10;
 const MIN_AGE = 18;
@@ -14,22 +17,10 @@ const MIN_AGE = 18;
 type Phase = "intro" | "blocked" | "interview" | "analyzing";
 
 const INTRO_STEPS: { state: MascotState; text: string }[] = [
-  {
-    state: "idle",
-    text: "Привет. Я — Mindprint. AI, который попробует понять, как ты думаешь.",
-  },
-  {
-    state: "listening",
-    text: "Мы поговорим о сложных ситуациях. Здесь нет правильных ответов — только твои.",
-  },
-  {
-    state: "listening",
-    text: "Как тебя зовут?",
-  },
-  {
-    state: "listening",
-    text: "Сколько тебе лет?",
-  },
+  { state: "idle", text: "Привет. Я — Mindprint. AI, который попробует понять, как ты думаешь." },
+  { state: "listening", text: "Мы поговорим о сложных ситуациях. Здесь нет правильных ответов — только твои." },
+  { state: "listening", text: "Как тебя зовут?" },
+  { state: "listening", text: "Сколько тебе лет?" },
 ];
 
 export default function Interview() {
@@ -37,7 +28,6 @@ export default function Interview() {
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [introStep, setIntroStep] = useState(0);
-
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState("");
 
@@ -48,12 +38,15 @@ export default function Interview() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [mascotState, setMascotState] = useState<MascotState>("idle");
+  const [mood, setMood] = useState<Mood>("curious");
+  const [fastTravel, setFastTravel] = useState(false);
 
   const hasFetched = useRef(false);
 
   async function fetchQuestion(currentHistory: InterviewItem[]) {
     setError("");
     setMascotState("thinking");
+    setFastTravel(true);
     try {
       const response = await fetch("/api/interview", {
         method: "POST",
@@ -65,13 +58,16 @@ export default function Interview() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Ошибка сервера");
+
       setQuestion(data.question);
+      setMood(data.mood || "curious");
       setMascotState("listening");
+      setFastTravel(false);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Не удалось получить вопрос.";
+      const message = err instanceof Error ? err.message : "Ошибка.";
       setError(message);
       setMascotState("skeptical");
+      setFastTravel(false);
     } finally {
       setLoading(false);
       setSending(false);
@@ -113,60 +109,55 @@ export default function Interview() {
   }
 
   async function handleNext() {
-    const trimmedAnswer = answer.trim();
-    if (!trimmedAnswer || sending || loading) return;
+    const trimmed = answer.trim();
+    if (!trimmed || sending || loading) return;
 
-    const updatedHistory = [...history, { question, answer: trimmedAnswer }];
-    setHistory(updatedHistory);
+    const updated = [...history, { question, answer: trimmed }];
+    setHistory(updated);
     setAnswer("");
+
     setMascotState("writing");
+    setFastTravel(true);
 
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 700));
 
-    if (updatedHistory.length >= TOTAL_QUESTIONS) {
-      sessionStorage.setItem(
-        "mindprint_interview",
-        JSON.stringify(updatedHistory)
-      );
+    if (updated.length >= TOTAL_QUESTIONS) {
+      sessionStorage.setItem("mindprint_interview", JSON.stringify(updated));
       setPhase("analyzing");
       setMascotState("analyzing");
-      await new Promise((r) => setTimeout(r, 1600));
+      await new Promise((r) => setTimeout(r, 2400));
       setMascotState("finished");
-      await new Promise((r) => setTimeout(r, 800));
+      await new Promise((r) => setTimeout(r, 900));
       router.push("/result");
       return;
     }
 
     setSending(true);
     setLoading(true);
-    await fetchQuestion(updatedHistory);
+    await fetchQuestion(updated);
   }
 
   const currentNumber = history.length + 1;
   const progress = Math.min((currentNumber / TOTAL_QUESTIONS) * 100, 100);
+  const auroraActive = mascotState === "thinking" || mascotState === "analyzing";
 
-  /* === 18+ блок === */
+  /* === 18+ === */
   if (phase === "blocked") {
     return (
-      <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col items-center justify-center px-5 text-center font-sans text-[#1c1b18]">
+      <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col items-center justify-center px-5 text-center font-sans">
         <BackgroundGlow />
-
         <div className="relative z-10 flex flex-col items-center">
           <Mascot state="skeptical" size="sm" />
-
           <div className="mb-4 mt-6 h-[2px] w-8 bg-[#ff3b00]" />
-
           <h1 className="text-lg font-normal leading-tight tracking-tight">
             Не могу пустить.
           </h1>
-
-          <p className="mt-3 max-w-[280px] text-[13px] leading-[1.6] text-[#757167]">
+          <p className="mt-3 max-w-[280px] text-[13px] leading-[1.6] text-white/50">
             Вопросы рассчитаны на взрослых. Возвращайся, когда исполнится {MIN_AGE}.
           </p>
-
           <Link
             href="/"
-            className="mt-7 flex h-12 items-center justify-center rounded-xl border border-[#1c1b18]/15 bg-white/40 px-6 font-mono text-[11px] font-bold tracking-[0.15em] text-[#1c1b18] backdrop-blur-sm transition-all active:scale-[0.98]"
+            className="mt-7 flex h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-6 font-mono text-[11px] font-bold tracking-[0.15em] text-white backdrop-blur-sm active:scale-[0.98]"
           >
             НА ГЛАВНУЮ
           </Link>
@@ -175,15 +166,15 @@ export default function Interview() {
     );
   }
 
-  /* === Фаза анализа === */
+  /* === Анализ === */
   if (phase === "analyzing") {
     return (
       <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col items-center justify-center px-5 text-center">
         <BackgroundGlow />
-
+        <AuroraBorealis active />
         <div className="relative z-10 flex flex-col items-center">
           <Mascot state={mascotState} size="sm" />
-          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.25em] text-[#8c887d]">
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
             Анализирую ответы…
           </p>
         </div>
@@ -191,7 +182,7 @@ export default function Interview() {
     );
   }
 
-  /* === Основной интерфейс === */
+  /* === Текст облачка === */
   const bubbleText =
     phase === "intro"
       ? INTRO_STEPS[introStep].text
@@ -201,28 +192,43 @@ export default function Interview() {
           ? error
           : question;
 
+  const bubbleContent = loading ? (
+    <div className="flex items-center justify-center gap-2 py-1">
+      <span className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse" />
+      <span className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse" style={{ animationDelay: "200ms" }} />
+      <span className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse" style={{ animationDelay: "400ms" }} />
+    </div>
+  ) : (
+    <p className="text-center text-[14px] font-normal leading-[1.5] text-white">
+      {bubbleText}
+    </p>
+  );
+
+  const isAsking =
+    phase === "interview" && !loading && !error && !!question && !sending;
+
+  /* === Основной интерфейс === */
   return (
-    <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col bg-[#f3f1e9] font-sans text-[#1c1b18] antialiased">
+    <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col font-sans">
       <BackgroundGlow />
+      <AuroraBorealis active={auroraActive} />
 
       {/* Хедер */}
-      <header className="relative z-10 flex w-full items-center justify-between px-5 py-4">
+      <header className="relative z-20 flex w-full items-center justify-between px-5 py-4">
         <Link
           href="/"
-          className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#1c1b18] active:opacity-60"
+          className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-white active:opacity-60"
         >
           MINDPRINT
         </Link>
-
-        <span className="font-mono text-[10px] tracking-widest text-[#8c887d]">
+        <span className="font-mono text-[10px] tracking-widest text-white/40">
           {phase === "intro"
             ? `${introStep + 1} / ${INTRO_STEPS.length}`
             : `${String(Math.min(currentNumber, TOTAL_QUESTIONS)).padStart(2, "0")} / ${TOTAL_QUESTIONS}`}
         </span>
       </header>
 
-      {/* Прогресс */}
-      <div className="relative z-10 mx-5 h-[2px] w-[calc(100%-40px)] bg-[#e0dcd1]">
+      <div className="relative z-20 mx-5 h-[2px] w-[calc(100%-40px)] bg-white/10">
         <div
           className="h-[2px] bg-[#ff3b00] transition-all duration-500"
           style={{
@@ -234,44 +240,17 @@ export default function Interview() {
         />
       </div>
 
-      {/* Контент */}
-      <section className="relative z-10 flex flex-1 flex-col px-5 pt-5">
-        {/* Облачко + маскот */}
-        <div className="flex flex-col items-center">
-          {/* Облачко */}
-          <div key={bubbleText} className="relative w-full max-w-sm">
-            <div className="speech-bubble relative rounded-2xl bg-white/90 px-4 py-4 backdrop-blur-sm">
-              {loading ? (
-                <div className="flex items-center justify-center gap-2 py-2">
-                  <span className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse" />
-                  <span
-                    className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse"
-                    style={{ animationDelay: "200ms" }}
-                  />
-                  <span
-                    className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse"
-                    style={{ animationDelay: "400ms" }}
-                  />
-                </div>
-              ) : (
-                <p className="text-center text-[15px] font-normal leading-[1.5] text-[#1c1b18]">
-                  {bubbleText}
-                </p>
-              )}
+      <FloatingMascot
+        state={mascotState}
+        mood={mood}
+        bubble={bubbleContent}
+        isAsking={isAsking}
+        fastTravel={fastTravel}
+      />
 
-              {/* Хвостик облачка */}
-              <div className="absolute -bottom-[6px] left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[2px] bg-white/90 backdrop-blur-sm" />
-            </div>
-          </div>
-
-          {/* Маскот */}
-          <div className="mt-4 mb-2">
-            <Mascot state={mascotState} size="sm" />
-          </div>
-        </div>
-
-        {/* Поле ввода */}
-        <div className="mt-auto w-full max-w-sm mx-auto pb-4">
+      {/* Поле ввода */}
+      <section className="relative z-20 mt-auto w-full px-5 pb-5">
+        <div className="mx-auto w-full max-w-sm">
           {phase === "intro" && introStep >= 2 && (
             <input
               type={introStep === 3 ? "tel" : "text"}
@@ -283,13 +262,9 @@ export default function Interview() {
               }}
               placeholder={introStep === 2 ? "Твоё имя" : "Возраст"}
               maxLength={introStep === 3 ? 3 : 40}
-              className="mb-3 h-12 w-full rounded-xl border border-[#e2ded2] bg-white/60 px-4 text-center text-[15px] outline-none backdrop-blur-sm transition-colors placeholder:text-[#a39f93] focus:border-[#ff3b00]"
+              className="mb-3 h-12 w-full rounded-xl border border-white/15 bg-white/5 px-4 text-center text-[15px] text-white outline-none backdrop-blur-md transition-colors placeholder:text-white/30 focus:border-[#ff3b00]"
               autoFocus
             />
-          )}
-
-          {phase === "intro" && introStep < 2 && (
-            <div className="mb-3" />
           )}
 
           {phase === "interview" && (
@@ -297,7 +272,7 @@ export default function Interview() {
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="Напиши своими словами…"
-              className="mb-3 min-h-[120px] w-full resize-none rounded-xl border border-[#e2ded2] bg-white/60 p-4 text-[15px] leading-[1.6] outline-none backdrop-blur-sm transition-colors placeholder:text-[#a39f93] focus:border-[#ff3b00]"
+              className="mb-3 min-h-[110px] w-full resize-none rounded-2xl border border-white/15 bg-white/5 p-4 text-[15px] leading-[1.55] text-white outline-none backdrop-blur-md transition-colors placeholder:text-white/30 focus:border-[#ff3b00]"
               disabled={sending}
               autoFocus
             />
@@ -310,7 +285,7 @@ export default function Interview() {
                 ? !(introStep < 2 || (introStep === 2 ? userName.trim() : userAge.trim()))
                 : !answer.trim() || sending
             }
-            className="flex h-12 w-full items-center justify-between rounded-xl bg-[#1a1917] px-5 font-mono text-[11px] font-bold tracking-[0.15em] text-white transition-all active:scale-[0.98] active:bg-[#33312d] disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-12 w-full items-center justify-between rounded-xl bg-white px-5 font-mono text-[11px] font-bold tracking-[0.15em] text-black shadow-lg shadow-black/40 transition-all active:scale-[0.98] active:bg-white/90 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <span>
               {phase === "intro"
@@ -325,12 +300,6 @@ export default function Interview() {
             </span>
             <span className="font-sans text-base font-light">→</span>
           </button>
-
-          {phase === "interview" && !error && !loading && (
-            <p className="mt-3 text-center font-mono text-[9px] uppercase tracking-widest text-[#a39f93]">
-              Без правильных ответов
-            </p>
-          )}
         </div>
       </section>
     </main>

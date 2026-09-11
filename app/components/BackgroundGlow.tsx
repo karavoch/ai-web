@@ -1,8 +1,9 @@
 export function BackgroundGlow() {
   return (
-    <div
-      className="bg-glow pointer-events-none fixed inset-0 -z-10"
-      aria-hidden="true"
-    />
+    <div className="bg-glow" aria-hidden="true">
+      <span className="bg-blob blob-1" />
+      <span className="bg-blob blob-2" />
+      <span className="bg-blob blob-3" />
+    </div>
   );
 }

@@ -6,8 +6,8 @@ import { BackgroundGlow } from "./components/BackgroundGlow";
 
 export default function Home() {
   return (
-    <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col bg-[#f3f1e9] font-sans text-[#1c1b18] antialiased">
-      <BackgroundGlow />
+   <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col font-sans text-[#1c1b18] antialiased">
+  <BackgroundGlow />
 
       {/* Хедер */}
       <header className="relative z-10 flex w-full items-center justify-between px-5 py-4">

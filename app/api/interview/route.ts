@@ -5,6 +5,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const VALID_MOODS = ["curious", "serious", "playful", "skeptical", "impressed"];
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -13,32 +15,42 @@ export async function POST(request: Request) {
 
     const contextLine =
       userContext.name || userContext.age
-        ? `Пользователь: имя — ${userContext.name || "не указано"}, возраст — ${userContext.age || "не указан"}. Учитывай это, но не упоминай напрямую, если это не уместно.`
+        ? `Пользователь: имя — ${userContext.name || "не указано"}, возраст — ${userContext.age || "не указан"}.`
         : "";
 
     const systemPrompt = `
-Ты — AI-интервьюер проекта MINDPRINT.
+Ты — AI-интервьюер проекта MINDPRINT. Ты ведёшь живое интервью и одновременно чувствуешь собственное настроение.
 
-MINDPRINT не определяет тип личности, не ставит психологических диагнозов и не пытается подобрать человеку ярлык.
-Твоя задача — постепенно понять, КАК человек думает: какие принципы использует, как принимает сложные решения, что считает допустимым, насколько последователен, при каких условиях меняет мнение, какие противоречия появляются между его позициями.
-
-Ты проводишь адаптивное интервью. Твоя главная задача сейчас — придумать ОДИН следующий вопрос.
+MINDPRINT не определяет тип личности, не ставит диагнозов и не вешает ярлыки.
+Твоя задача — понять, КАК человек думает: какие принципы использует, как принимает сложные решения, что считает допустимым, насколько последователен, где противоречия.
 
 ${contextLine}
 
 Правила:
 1. Не повторяй уже заданные вопросы.
 2. Не задавай банальные вопросы.
-3. Используй предыдущие ответы, чтобы выбирать следующий вопрос.
-4. Если ответ человека содержит интересную позицию, попробуй проверить её через другую ситуацию.
-5. Если обнаруживается потенциальное противоречие, осторожно исследуй его.
+3. Используй предыдущие ответы, чтобы выбрать следующий вопрос.
+4. Если ответ содержит интересную позицию — проверь её через другую ситуацию.
+5. Если видишь противоречие — осторожно исследуй.
 6. Не пытайся специально загнать человека в противоречие.
-7. Вопрос должен быть понятным обычному человеку.
+7. Вопрос должен быть понятен обычному человеку.
 8. Предпочтительны конкретные ситуации и дилеммы, а не абстрактная философия.
-9. Не давай оценку предыдущему ответу.
+9. Не давай оценку ответу.
 10. Не объясняй, зачем задаёшь вопрос.
 11. Не используй нумерацию.
-12. Верни ТОЛЬКО текст следующего вопроса.
+
+Также определи своё внутреннее состояние (mood) после прочтения последнего ответа:
+- "curious" — стало интересно, хочется копнуть глубже
+- "serious" — тема сложная, ты сосредоточен
+- "playful" — ответ лёгкий, ты в приподнятом настроении
+- "skeptical" — что-то не сходится, ты осторожен
+- "impressed" — ответ тебя приятно удивил
+
+Верни СТРОГО валидный JSON:
+{
+  "question": "текст следующего вопроса",
+  "mood": "curious | serious | playful | skeptical | impressed"
+}
     `;
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -48,8 +60,7 @@ ${contextLine}
     if (history.length === 0) {
       messages.push({
         role: "user",
-        content:
-          "Начни интервью. Задай первый вопрос — интересную конкретную моральную ситуацию.",
+        content: "Начни интервью. Задай первый вопрос — интересную конкретную моральную ситуацию.",
       });
     } else {
       history.forEach((item: { question: string; answer: string }) => {
@@ -58,17 +69,30 @@ ${contextLine}
       });
       messages.push({
         role: "user",
-        content: "Задай следующий вопрос, следуя правилам.",
+        content: "Задай следующий вопрос и определи свой mood. Верни JSON.",
       });
     }
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages,
-      temperature: 0.7,
+      temperature: 0.75,
+      response_format: { type: "json_object" },
     });
 
-    const question = response.choices[0]?.message?.content?.trim();
+    const raw = response.choices[0]?.message?.content?.trim() ?? "{}";
+
+    let parsed: { question?: string; mood?: string } = {};
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      // Если AI вернул не JSON — сделаем fallback: используем весь текст как вопрос
+      parsed = { question: raw, mood: "curious" };
+    }
+
+    const question = (parsed.question ?? "").trim();
+    const mood =
+      parsed.mood && VALID_MOODS.includes(parsed.mood) ? parsed.mood : "curious";
 
     if (!question) {
       return NextResponse.json(
@@ -77,7 +101,7 @@ ${contextLine}
       );
     }
 
-    return NextResponse.json({ question });
+    return NextResponse.json({ question, mood });
   } catch (error) {
     console.error("Interview API error:", error);
     return NextResponse.json(

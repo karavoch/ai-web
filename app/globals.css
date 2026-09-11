@@ -1,21 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3f1e9;
-  --foreground: #1c1b18;
+  --bg: #0a0a12;
+  --fg: #f0efe8;
+  --muted: #8a8a95;
+  --line: rgba(255, 255, 255, 0.08);
+  --accent: #ff3b00;
 }
 
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-}
+* { -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--fg);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }
@@ -23,38 +21,150 @@ body {
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
-/* === Фоновое сияние === */
+/* ============================================================
+   ТЁМНЫЙ ФОН с лёгкими цветными свечениями
+   ============================================================ */
 .bg-glow {
-  background:
-    radial-gradient(circle at 15% 5%,  rgba(255, 170, 120, 0.22), transparent 42%),
-    radial-gradient(circle at 88% 12%, rgba(180, 170, 255, 0.20), transparent 46%),
-    radial-gradient(circle at 50% 98%, rgba(255, 210, 140, 0.18), transparent 55%),
-    radial-gradient(circle at 92% 82%, rgba(255, 160, 160, 0.14), transparent 42%),
-    radial-gradient(circle at 8%  80%, rgba(140, 200, 255, 0.14), transparent 42%);
-  filter: blur(20px);
-  animation: glow-breathe 14s ease-in-out infinite;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #0a0a12;
+}
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  will-change: transform;
+  pointer-events: none;
+}
+.blob-1 {
+  width: 60vmax; height: 60vmax;
+  background: radial-gradient(circle, #4a2fa8 0%, transparent 65%);
+  top: -20%; left: -15%;
+  animation: blob-a 26s ease-in-out infinite alternate;
+}
+.blob-2 {
+  width: 55vmax; height: 55vmax;
+  background: radial-gradient(circle, #1a3b6b 0%, transparent 65%);
+  top: 10%; right: -25%;
+  animation: blob-b 30s ease-in-out infinite alternate;
+}
+.blob-3 {
+  width: 50vmax; height: 50vmax;
+  background: radial-gradient(circle, #6b1f3d 0%, transparent 65%);
+  bottom: -25%; left: 15%;
+  animation: blob-c 34s ease-in-out infinite alternate;
 }
 
-@keyframes glow-breathe {
-  0%, 100% { opacity: 1;    transform: scale(1); }
-  50%      { opacity: 0.7;  transform: scale(1.06); }
+@keyframes blob-a {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(25vw, 30vh) scale(1.15); }
+  100% { transform: translate(-5vw, 50vh) scale(0.95); }
+}
+@keyframes blob-b {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-30vw, 25vh) scale(1.12); }
+  100% { transform: translate(-15vw, -12vh) scale(1.2); }
+}
+@keyframes blob-c {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(20vw, -25vh) scale(1.15); }
+  100% { transform: translate(-25vw, -8vh) scale(1); }
 }
 
-/* Пульсация точек */
+/* ============================================================
+   СЕВЕРНОЕ СИЯНИЕ (Aurora)
+   Появляется когда AI думает
+   ============================================================ */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.aurora.active {
+  opacity: 1;
+}
+
+.aurora-band {
+  position: absolute;
+  top: -30%;
+  left: -30%;
+  width: 160%;
+  height: 90%;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.aurora-1 {
+  background: linear-gradient(90deg, transparent 0%, #00ffaa 35%, #00d4ff 65%, transparent 100%);
+  animation: aurora-drift-1 9s ease-in-out infinite alternate;
+}
+.aurora-2 {
+  background: linear-gradient(90deg, transparent 0%, #5c2eff 30%, #00a2ff 70%, transparent 100%);
+  top: -20%;
+  animation: aurora-drift-2 12s ease-in-out infinite alternate;
+  animation-delay: -3s;
+}
+.aurora-3 {
+  background: linear-gradient(90deg, transparent 0%, #ff2ea6 40%, #7d2eff 80%, transparent 100%);
+  top: -35%;
+  animation: aurora-drift-3 14s ease-in-out infinite alternate;
+  animation-delay: -6s;
+  opacity: 0.4;
+}
+.aurora-4 {
+  background: linear-gradient(90deg, transparent 0%, #00ffea 45%, #7dff00 80%, transparent 100%);
+  top: -15%;
+  animation: aurora-drift-4 10s ease-in-out infinite alternate;
+  animation-delay: -2s;
+  opacity: 0.35;
+}
+
+@keyframes aurora-drift-1 {
+  0%   { transform: translateX(-15%) skewX(-8deg) scaleY(1); opacity: 0.3; }
+  50%  { transform: translateX(15%)  skewX(4deg)  scaleY(1.15); opacity: 0.7; }
+  100% { transform: translateX(-8%)  skewX(-3deg) scaleY(1.05); opacity: 0.5; }
+}
+@keyframes aurora-drift-2 {
+  0%   { transform: translateX(10%)  skewX(6deg)  scaleY(1); opacity: 0.4; }
+  50%  { transform: translateX(-20%) skewX(-4deg) scaleY(1.2); opacity: 0.6; }
+  100% { transform: translateX(5%)   skewX(2deg)  scaleY(1.05); opacity: 0.5; }
+}
+@keyframes aurora-drift-3 {
+  0%   { transform: translateX(-25%) skewX(-5deg) scaleY(1); opacity: 0.3; }
+  50%  { transform: translateX(20%)  skewX(8deg)  scaleY(1.1); opacity: 0.55; }
+  100% { transform: translateX(-10%) skewX(-2deg) scaleY(1.08); opacity: 0.4; }
+}
+@keyframes aurora-drift-4 {
+  0%   { transform: translateX(15%)  skewX(3deg)  scaleY(1); opacity: 0.35; }
+  50%  { transform: translateX(-10%) skewX(-6deg) scaleY(1.15); opacity: 0.5; }
+  100% { transform: translateX(8%)   skewX(4deg)  scaleY(1.05); opacity: 0.3; }
+}
+
+/* ============ Пульсация / появление ============ */
 @keyframes smooth-pulse {
   0%, 100% { transform: scale(0.6); opacity: 0.3; }
   50%      { transform: scale(1.2); opacity: 1; }
 }
 .animate-smooth-pulse { animation: smooth-pulse 1.4s ease-in-out infinite; }
 
-/* Появление */
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-/* === Анимации маскота === */
+/* ============ Анимации маскота ============ */
 @keyframes mascot-float {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-8px); }
@@ -62,6 +172,11 @@ body {
 @keyframes mascot-sway {
   0%, 100% { transform: rotate(-3deg); }
   50%      { transform: rotate(3deg); }
+}
+@keyframes mascot-spin {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(180deg) scale(1.05); }
+  100% { transform: rotate(360deg); }
 }
 @keyframes mascot-shake {
   0%, 100% { transform: translateX(0); }
@@ -78,21 +193,41 @@ body {
 .mascot-enter     { animation: mascot-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .mascot-idle      { animation: mascot-float 4s ease-in-out infinite; }
 .mascot-listening { animation: mascot-float 3s ease-in-out infinite; }
-.mascot-thinking  { animation: mascot-sway 2.5s ease-in-out infinite; }
-.mascot-writing   { animation: mascot-sway 1.4s ease-in-out infinite; }
+.mascot-thinking  { animation: mascot-sway 1.4s ease-in-out infinite; }
+.mascot-writing   { animation: mascot-sway 1s ease-in-out infinite; }
 .mascot-surprised { animation: mascot-shake 0.5s ease-in-out 1; }
 .mascot-skeptical { animation: mascot-sway 3.2s ease-in-out infinite; }
 .mascot-finished  { animation: mascot-float 3s ease-in-out infinite; }
-.mascot-analyzing { animation: mascot-sway 1.8s ease-in-out infinite; }
+.mascot-analyzing { animation: mascot-spin 3s linear infinite; }
 
-/* Облачко с репликой маскота */
+/* ============ Облачко ============ */
 .speech-bubble {
   animation: bubble-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.03),
-    0 12px 32px -12px rgba(75, 90, 228, 0.18);
+    0 1px 2px rgba(0,0,0,0.3),
+    0 12px 40px -10px rgba(75, 90, 228, 0.4);
 }
 @keyframes bubble-in {
   from { opacity: 0; transform: translateY(6px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============ Полёт маскота ============
+   ВАЖНО: используем только translate(Xvw, Yvh),
+   чтобы браузер гарантированно анимировал.
+   ========================================= */
+.mascot-flyer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 30;
+  pointer-events: none;
+  transition: transform 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.mascot-flyer.is-dragging {
+  transition: none;
+}
+.mascot-flyer.is-fast {
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
