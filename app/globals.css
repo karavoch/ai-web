@@ -1,322 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f0e8;
-  --foreground: #111;
+  --background: #f3f1e9;
+  --foreground: #1c1b18;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
 }
 
+/* Отступы под iOS safe area (для iPhone с чёлкой) */
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
-/* =====================================================
-   LOADING
-   ===================================================== */
-
+/* Плавная пульсация */
 @keyframes smooth-pulse {
-  0%,
-  100% {
-    transform: scale(0.6);
-    opacity: 0.3;
-  }
-
-  50% {
-    transform: scale(1.2);
-    opacity: 1;
-  }
+  0%, 100% { transform: scale(0.6); opacity: 0.3; }
+  50%      { transform: scale(1.2); opacity: 1; }
 }
+.animate-smooth-pulse { animation: smooth-pulse 1.4s ease-in-out infinite; }
 
-.animate-smooth-pulse {
-  animation: smooth-pulse 1.4s ease-in-out infinite;
-}
-
-
-/* =====================================================
-   QUESTION
-   ===================================================== */
-
+/* Появление */
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+.animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* === Анимации маскота === */
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
 }
-
-
-/* =====================================================
-   BREATHING
-   ===================================================== */
-
-@keyframes breathe {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.08);
-  }
+@keyframes mascot-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
 }
-
-.animate-breathe {
-  animation: breathe 8s ease-in-out infinite;
+@keyframes mascot-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px) rotate(-4deg); }
+  40% { transform: translateX(6px) rotate(4deg); }
+  60% { transform: translateX(-4px) rotate(-2deg); }
+  80% { transform: translateX(4px) rotate(2deg); }
 }
-
-
-/* =====================================================
-   BACKGROUND BLOBS
-   ===================================================== */
-
-.blob {
-  position: absolute;
-  left: 0;
-  top: 0;
-
-  transform: translate(-50%, -50%);
-
-  border-radius: 9999px;
-
-  filter: blur(60px);
-
-  will-change: transform;
+@keyframes mascot-pop {
+  0%   { opacity: 0; transform: scale(0.85); }
+  60%  { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
 }
-
-
-/* PINK */
-
-.blob-pink {
-  width: 280px;
-  height: 280px;
-  background: rgba(255, 181, 167, 0.6);
-}
-
-
-/* BLUE */
-
-.blob-blue {
-  width: 300px;
-  height: 300px;
-  background: rgba(160, 196, 255, 0.5);
-}
-
-
-/* YELLOW */
-
-.blob-yellow {
-  width: 270px;
-  height: 270px;
-  background: rgba(253, 255, 182, 0.6);
-}
-
-
-/* GREEN */
-
-.blob-green {
-  width: 230px;
-  height: 230px;
-  background: rgba(202, 255, 191, 0.5);
-}
-
-
-/* =====================================================
-   ORBITS
-   ===================================================== */
-
-.orbit {
-  position: absolute;
-
-  left: 0;
-  top: 0;
-
-  width: 0;
-  height: 0;
-
-  transform-origin: 0 0;
-
-  will-change: transform;
-}
-
-
-/*
-   Каждый orbit начинается в центре страницы.
-
-   rotate(...)
-   translateX(...)
-
-   означает:
-
-   1. повернуть систему вокруг центра
-   2. отодвинуть шарик от центра
-
-   Получается настоящая круговая орбита.
-*/
-
-
-.orbit-pink {
-  animation: orbit-pink 32s linear infinite;
-}
-
-.orbit-blue {
-  animation: orbit-blue 39s linear infinite;
-}
-
-.orbit-yellow {
-  animation: orbit-yellow 46s linear infinite;
-}
-
-.orbit-green {
-  animation: orbit-green 35s linear infinite;
-}
-
-
-/* PINK */
-
-@keyframes orbit-pink {
-  from {
-    transform: rotate(0deg) translateX(240px);
-  }
-
-  to {
-    transform: rotate(360deg) translateX(240px);
-  }
-}
-
-
-/* BLUE */
-
-@keyframes orbit-blue {
-  from {
-    transform: rotate(90deg) translateX(220px);
-  }
-
-  to {
-    transform: rotate(450deg) translateX(220px);
-  }
-}
-
-
-/* YELLOW */
-
-@keyframes orbit-yellow {
-  from {
-    transform: rotate(180deg) translateX(260px);
-  }
-
-  to {
-    transform: rotate(540deg) translateX(260px);
-  }
-}
-
-
-/* GREEN */
-
-@keyframes orbit-green {
-  from {
-    transform: rotate(270deg) translateX(200px);
-  }
-
-  to {
-    transform: rotate(630deg) translateX(200px);
-  }
-}
-
-
-/* =====================================================
-   MOBILE
-   ===================================================== */
-
-@media (max-width: 640px) {
-
-  .blob-pink {
-    width: 210px;
-    height: 210px;
-  }
-
-  .blob-blue {
-    width: 220px;
-    height: 220px;
-  }
-
-  .blob-yellow {
-    width: 200px;
-    height: 200px;
-  }
-
-  .blob-green {
-    width: 170px;
-    height: 170px;
-  }
-
-
-  .orbit-pink {
-    animation-name: orbit-pink-mobile;
-  }
-
-  .orbit-blue {
-    animation-name: orbit-blue-mobile;
-  }
-
-  .orbit-yellow {
-    animation-name: orbit-yellow-mobile;
-  }
-
-  .orbit-green {
-    animation-name: orbit-green-mobile;
-  }
-}
-
-
-@keyframes orbit-pink-mobile {
-  from {
-    transform: rotate(0deg) translateX(150px);
-  }
-
-  to {
-    transform: rotate(360deg) translateX(150px);
-  }
-}
-
-
-@keyframes orbit-blue-mobile {
-  from {
-    transform: rotate(90deg) translateX(135px);
-  }
-
-  to {
-    transform: rotate(450deg) translateX(135px);
-  }
-}
-
-
-@keyframes orbit-yellow-mobile {
-  from {
-    transform: rotate(180deg) translateX(160px);
-  }
-
-  to {
-    transform: rotate(540deg) translateX(160px);
-  }
-}
-
-
-@keyframes orbit-green-mobile {
-  from {
-    transform: rotate(270deg) translateX(120px);
-  }
-
-  to {
-    transform: rotate(630deg) translateX(120px);
-  }
-}
+.mascot-enter     { animation: mascot-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.mascot-idle      { animation: mascot-float 4s ease-in-out infinite; }
+.mascot-listening { animation: mascot-float 3s ease-in-out infinite; }
+.mascot-thinking  { animation: mascot-sway 2.5s ease-in-out infinite; }
+.mascot-writing   { animation: mascot-sway 1.4s ease-in-out infinite; }
+.mascot-surprised { animation: mascot-shake 0.5s ease-in-out 1; }
+.mascot-skeptical { animation: mascot-sway 3.2s ease-in-out infinite; }
+.mascot-finished  { animation: mascot-float 3s ease-in-out infinite; }
+.mascot-analyzing { animation: mascot-sway 1.8s ease-in-out infinite; }

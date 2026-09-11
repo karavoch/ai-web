@@ -9,6 +9,12 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const history = Array.isArray(body.history) ? body.history : [];
+    const userContext = body.userContext ?? {};
+
+    const contextLine =
+      userContext.name || userContext.age
+        ? `Пользователь: имя — ${userContext.name || "не указано"}, возраст — ${userContext.age || "не указан"}. Учитывай это, но не упоминай напрямую, если это не уместно.`
+        : "";
 
     const systemPrompt = `
 Ты — AI-интервьюер проекта MINDPRINT.
@@ -17,6 +23,8 @@ MINDPRINT не определяет тип личности, не ставит �
 Твоя задача — постепенно понять, КАК человек думает: какие принципы использует, как принимает сложные решения, что считает допустимым, насколько последователен, при каких условиях меняет мнение, какие противоречия появляются между его позициями.
 
 Ты проводишь адаптивное интервью. Твоя главная задача сейчас — придумать ОДИН следующий вопрос.
+
+${contextLine}
 
 Правила:
 1. Не повторяй уже заданные вопросы.
@@ -56,7 +64,7 @@ MINDPRINT не определяет тип личности, не ставит �
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: messages,
+      messages,
       temperature: 0.7,
     });
 
