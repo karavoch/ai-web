@@ -20,11 +20,27 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Отступы под iOS safe area (для iPhone с чёлкой) */
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
-/* Плавная пульсация */
+/* === Фоновое сияние === */
+.bg-glow {
+  background:
+    radial-gradient(circle at 15% 5%,  rgba(255, 170, 120, 0.22), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(180, 170, 255, 0.20), transparent 46%),
+    radial-gradient(circle at 50% 98%, rgba(255, 210, 140, 0.18), transparent 55%),
+    radial-gradient(circle at 92% 82%, rgba(255, 160, 160, 0.14), transparent 42%),
+    radial-gradient(circle at 8%  80%, rgba(140, 200, 255, 0.14), transparent 42%);
+  filter: blur(20px);
+  animation: glow-breathe 14s ease-in-out infinite;
+}
+
+@keyframes glow-breathe {
+  0%, 100% { opacity: 1;    transform: scale(1); }
+  50%      { opacity: 0.7;  transform: scale(1.06); }
+}
+
+/* Пульсация точек */
 @keyframes smooth-pulse {
   0%, 100% { transform: scale(0.6); opacity: 0.3; }
   50%      { transform: scale(1.2); opacity: 1; }
@@ -33,7 +49,7 @@ body {
 
 /* Появление */
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -50,9 +66,9 @@ body {
 @keyframes mascot-shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-6px) rotate(-4deg); }
-  40% { transform: translateX(6px) rotate(4deg); }
+  40% { transform: translateX(6px)  rotate(4deg); }
   60% { transform: translateX(-4px) rotate(-2deg); }
-  80% { transform: translateX(4px) rotate(2deg); }
+  80% { transform: translateX(4px)  rotate(2deg); }
 }
 @keyframes mascot-pop {
   0%   { opacity: 0; transform: scale(0.85); }
@@ -68,3 +84,15 @@ body {
 .mascot-skeptical { animation: mascot-sway 3.2s ease-in-out infinite; }
 .mascot-finished  { animation: mascot-float 3s ease-in-out infinite; }
 .mascot-analyzing { animation: mascot-sway 1.8s ease-in-out infinite; }
+
+/* Облачко с репликой маскота */
+.speech-bubble {
+  animation: bubble-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.03),
+    0 12px 32px -12px rgba(75, 90, 228, 0.18);
+}
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}

@@ -10,10 +10,6 @@ export type MascotState =
   | "finished"
   | "analyzing";
 
-/**
- * Замените null на путь к PNG/WebP, когда будут готовы арты.
- * Например: idle: "/mascot/idle.webp"
- */
 const MASCOT_IMAGES: Record<MascotState, string | null> = {
   idle: null,
   listening: null,
@@ -25,13 +21,14 @@ const MASCOT_IMAGES: Record<MascotState, string | null> = {
   analyzing: null,
 };
 
-type MascotSize = "sm" | "md" | "lg" | "xl";
+type MascotSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 const SIZE_CLASSES: Record<MascotSize, string> = {
-  sm: "h-24 w-24",
-  md: "h-44 w-44",
-  lg: "h-72 w-72",
-  xl: "h-[460px] w-[380px]",
+  xs: "h-20 w-20",
+  sm: "h-28 w-28",
+  md: "h-40 w-40",
+  lg: "h-56 w-56",
+  xl: "h-[400px] w-[320px]",
 };
 
 export function Mascot({
