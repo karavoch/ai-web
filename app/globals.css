@@ -3,8 +3,6 @@
 :root {
   --bg: #0a0a12;
   --fg: #f0efe8;
-  --muted: #8a8a95;
-  --line: rgba(255, 255, 255, 0.08);
   --accent: #ff3b00;
 }
 
@@ -21,9 +19,7 @@ body {
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
-/* ============================================================
-   ТЁМНЫЙ ФОН с лёгкими цветными свечениями
-   ============================================================ */
+/* === Тёмный фон === */
 .bg-glow {
   position: fixed;
   inset: 0;
@@ -58,7 +54,6 @@ body {
   bottom: -25%; left: 15%;
   animation: blob-c 34s ease-in-out infinite alternate;
 }
-
 @keyframes blob-a {
   0%   { transform: translate(0, 0) scale(1); }
   50%  { transform: translate(25vw, 30vh) scale(1.15); }
@@ -75,10 +70,7 @@ body {
   100% { transform: translate(-25vw, -8vh) scale(1); }
 }
 
-/* ============================================================
-   СЕВЕРНОЕ СИЯНИЕ (Aurora)
-   Появляется когда AI думает
-   ============================================================ */
+/* === Аврора === */
 .aurora {
   position: fixed;
   inset: 0;
@@ -88,9 +80,7 @@ body {
   opacity: 0;
   transition: opacity 1.2s ease;
 }
-.aurora.active {
-  opacity: 1;
-}
+.aurora.active { opacity: 1; }
 
 .aurora-band {
   position: absolute;
@@ -104,7 +94,6 @@ body {
   mix-blend-mode: screen;
   will-change: transform, opacity;
 }
-
 .aurora-1 {
   background: linear-gradient(90deg, transparent 0%, #00ffaa 35%, #00d4ff 65%, transparent 100%);
   animation: aurora-drift-1 9s ease-in-out infinite alternate;
@@ -129,7 +118,6 @@ body {
   animation-delay: -2s;
   opacity: 0.35;
 }
-
 @keyframes aurora-drift-1 {
   0%   { transform: translateX(-15%) skewX(-8deg) scaleY(1); opacity: 0.3; }
   50%  { transform: translateX(15%)  skewX(4deg)  scaleY(1.15); opacity: 0.7; }
@@ -151,7 +139,7 @@ body {
   100% { transform: translateX(8%)   skewX(4deg)  scaleY(1.05); opacity: 0.3; }
 }
 
-/* ============ Пульсация / появление ============ */
+/* === Пульсация / появление === */
 @keyframes smooth-pulse {
   0%, 100% { transform: scale(0.6); opacity: 0.3; }
   50%      { transform: scale(1.2); opacity: 1; }
@@ -164,7 +152,7 @@ body {
 }
 .animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-/* ============ Анимации маскота ============ */
+/* === Анимации маскота === */
 @keyframes mascot-float {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-8px); }
@@ -190,17 +178,47 @@ body {
   60%  { opacity: 1; transform: scale(1.04); }
   100% { opacity: 1; transform: scale(1); }
 }
+
+/* === Цундере-анимации === */
+@keyframes mascot-huff {
+  0%   { transform: rotate(0deg) translateX(0); }
+  30%  { transform: rotate(-12deg) translateX(-8px); }
+  50%  { transform: rotate(-14deg) translateX(-10px); }
+  70%  { transform: rotate(-10deg) translateX(-5px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+@keyframes mascot-turn-away {
+  0%   { transform: rotate(0deg) scale(1); }
+  100% { transform: rotate(-15deg) scale(0.98); }
+}
+@keyframes mascot-stomp {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  20% { transform: translateY(-4px) rotate(-3deg); }
+  40% { transform: translateY(0) rotate(3deg); }
+  60% { transform: translateY(-3px) rotate(-2deg); }
+  80% { transform: translateY(0) rotate(2deg); }
+}
+@keyframes mascot-blush {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.06) rotate(4deg); }
+  60%  { transform: scale(0.96) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
 .mascot-enter     { animation: mascot-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .mascot-idle      { animation: mascot-float 4s ease-in-out infinite; }
 .mascot-listening { animation: mascot-float 3s ease-in-out infinite; }
 .mascot-thinking  { animation: mascot-sway 1.4s ease-in-out infinite; }
 .mascot-writing   { animation: mascot-sway 1s ease-in-out infinite; }
 .mascot-surprised { animation: mascot-shake 0.5s ease-in-out 1; }
-.mascot-skeptical { animation: mascot-sway 3.2s ease-in-out infinite; }
+.mascot-skeptical { animation: mascot-huff 2.4s ease-in-out infinite; }
+.mascot-annoyed   { animation: mascot-stomp 1.2s ease-in-out infinite; }
+.mascot-pout      { animation: mascot-turn-away 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.mascot-blush     { animation: mascot-blush 0.9s ease-in-out infinite; }
 .mascot-finished  { animation: mascot-float 3s ease-in-out infinite; }
 .mascot-analyzing { animation: mascot-spin 3s linear infinite; }
 
-/* ============ Облачко ============ */
+/* === Облачко === */
 .speech-bubble {
   animation: bubble-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   box-shadow:
@@ -212,22 +230,19 @@ body {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ============ Полёт маскота ============
-   ВАЖНО: используем только translate(Xvw, Yvh),
-   чтобы браузер гарантированно анимировал.
-   ========================================= */
+/* === Полёт маскота === */
 .mascot-flyer {
   position: fixed;
   left: 0;
   top: 0;
   z-index: 30;
   pointer-events: none;
-  transition: transform 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 2.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   will-change: transform;
 }
 .mascot-flyer.is-dragging {
-  transition: none;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .mascot-flyer.is-fast {
-  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 1.3s cubic-bezier(0.16, 1, 0.3, 1);
 }

@@ -9,7 +9,14 @@ import { BackgroundGlow } from "../components/BackgroundGlow";
 import { AuroraBorealis } from "../components/AuroraBorealis";
 
 type InterviewItem = { question: string; answer: string };
-type Mood = "curious" | "serious" | "playful" | "skeptical" | "impressed";
+type Mood =
+  | "curious"
+  | "serious"
+  | "playful"
+  | "skeptical"
+  | "annoyed"
+  | "pout"
+  | "impressed";
 
 const TOTAL_QUESTIONS = 10;
 const MIN_AGE = 18;
@@ -17,10 +24,10 @@ const MIN_AGE = 18;
 type Phase = "intro" | "blocked" | "interview" | "analyzing";
 
 const INTRO_STEPS: { state: MascotState; text: string }[] = [
-  { state: "idle", text: "Привет. Я — Mindprint. AI, который попробует понять, как ты думаешь." },
-  { state: "listening", text: "Мы поговорим о сложных ситуациях. Здесь нет правильных ответов — только твои." },
+  { state: "idle", text: "Хм. Ну привет. Я Mindprint. Не то чтобы мне было интересно, но… как ты вообще думаешь?" },
+  { state: "listening", text: "Мы поговорим о сложных ситуациях. Здесь нет правильных ответов — только твои. Только не ври, ладно?" },
   { state: "listening", text: "Как тебя зовут?" },
-  { state: "listening", text: "Сколько тебе лет?" },
+  { state: "listening", text: "Сколько тебе лет? Только честно." },
 ];
 
 export default function Interview() {
@@ -60,8 +67,19 @@ export default function Interview() {
       if (!response.ok) throw new Error(data.error || "Ошибка сервера");
 
       setQuestion(data.question);
-      setMood(data.mood || "curious");
-      setMascotState("listening");
+      const newMood = (data.mood || "curious") as Mood;
+      setMood(newMood);
+
+      const moodToState: Record<Mood, MascotState> = {
+        curious:   "listening",
+        serious:   "listening",
+        playful:   "listening",
+        skeptical: "skeptical",
+        annoyed:   "annoyed",
+        pout:      "pout",
+        impressed: "blush",
+      };
+      setMascotState(moodToState[newMood] ?? "listening");
       setFastTravel(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Ошибка.";
@@ -112,12 +130,19 @@ export default function Interview() {
     const trimmed = answer.trim();
     if (!trimmed || sending || loading) return;
 
+    const len = trimmed.length;
+    if (len < 10) {
+      setMascotState("annoyed");
+    } else if (len > 200) {
+      setMascotState("skeptical");
+    } else {
+      setMascotState("writing");
+    }
+    setFastTravel(true);
+
     const updated = [...history, { question, answer: trimmed }];
     setHistory(updated);
     setAnswer("");
-
-    setMascotState("writing");
-    setFastTravel(true);
 
     await new Promise((r) => setTimeout(r, 700));
 
@@ -141,7 +166,6 @@ export default function Interview() {
   const progress = Math.min((currentNumber / TOTAL_QUESTIONS) * 100, 100);
   const auroraActive = mascotState === "thinking" || mascotState === "analyzing";
 
-  /* === 18+ === */
   if (phase === "blocked") {
     return (
       <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col items-center justify-center px-5 text-center font-sans">
@@ -150,7 +174,7 @@ export default function Interview() {
           <Mascot state="skeptical" size="sm" />
           <div className="mb-4 mt-6 h-[2px] w-8 bg-[#ff3b00]" />
           <h1 className="text-lg font-normal leading-tight tracking-tight">
-            Не могу пустить.
+            Хм. Нет.
           </h1>
           <p className="mt-3 max-w-[280px] text-[13px] leading-[1.6] text-white/50">
             Вопросы рассчитаны на взрослых. Возвращайся, когда исполнится {MIN_AGE}.
@@ -166,7 +190,6 @@ export default function Interview() {
     );
   }
 
-  /* === Анализ === */
   if (phase === "analyzing") {
     return (
       <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col items-center justify-center px-5 text-center">
@@ -182,8 +205,9 @@ export default function Interview() {
     );
   }
 
-  /* === Текст облачка === */
-  const bubbleText =
+  /* Текст, который показывается в облачке.
+     null → облачко покажет анимированные точки. */
+  const bubbleText: string | null =
     phase === "intro"
       ? INTRO_STEPS[introStep].text
       : loading
@@ -192,28 +216,14 @@ export default function Interview() {
           ? error
           : question;
 
-  const bubbleContent = loading ? (
-    <div className="flex items-center justify-center gap-2 py-1">
-      <span className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse" />
-      <span className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse" style={{ animationDelay: "200ms" }} />
-      <span className="h-2 w-2 rounded-full bg-[#ff3b00] animate-smooth-pulse" style={{ animationDelay: "400ms" }} />
-    </div>
-  ) : (
-    <p className="text-center text-[14px] font-normal leading-[1.5] text-white">
-      {bubbleText}
-    </p>
-  );
-
   const isAsking =
     phase === "interview" && !loading && !error && !!question && !sending;
 
-  /* === Основной интерфейс === */
   return (
     <main className="safe-top safe-bottom relative flex min-h-[100svh] flex-col font-sans">
       <BackgroundGlow />
       <AuroraBorealis active={auroraActive} />
 
-      {/* Хедер */}
       <header className="relative z-20 flex w-full items-center justify-between px-5 py-4">
         <Link
           href="/"
@@ -243,12 +253,11 @@ export default function Interview() {
       <FloatingMascot
         state={mascotState}
         mood={mood}
-        bubble={bubbleContent}
+        bubbleText={bubbleText}
         isAsking={isAsking}
         fastTravel={fastTravel}
       />
 
-      {/* Поле ввода */}
       <section className="relative z-20 mt-auto w-full px-5 pb-5">
         <div className="mx-auto w-full max-w-sm">
           {phase === "intro" && introStep >= 2 && (
@@ -290,7 +299,7 @@ export default function Interview() {
             <span>
               {phase === "intro"
                 ? introStep === 3
-                  ? "НАЧАТЬ ИНТЕРВЬЮ"
+                  ? "НАЧАТЬ"
                   : "ДАЛЕЕ"
                 : sending
                   ? "ДУМАЕМ…"
